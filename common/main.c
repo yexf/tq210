@@ -8,13 +8,9 @@ DECLARE_GLOBAL_DATA_PTR;
 typedef u32(*copy_sd_mmc_to_mem)
 (u32 channel, u32 start_block, u16 block_size, u32 *trg, u32 init);
 
-u32 sd_totle_block()
-{
-	u32 ret = *(volatile u32 *)(0xD0037480);
-	return ret;
-}
+static int block_totol = 0;
 
-u32 sd_read_iram(u32 start_block, u16 block_size, u32 *trg)
+u32 sd_read_irom(u32 start_block, u16 block_size, u32 *trg)
 {
 	u32 ch = *(volatile u32 *)(0xD0037488);
 	copy_sd_mmc_to_mem copy_bl2 =
@@ -32,6 +28,13 @@ u32 sd_read_iram(u32 start_block, u16 block_size, u32 *trg)
 
 	return ret;
 }
+
+inline unsigned int sd_totle_block(void)
+{
+	block_totol = *(volatile unsigned int *)(0xD0037480);
+	return block_totol;
+}
+
 #if defined(CONFIG_ENABLE_MMU)
 void copy_mmu_table()
 {
@@ -61,14 +64,44 @@ inline void delay(unsigned long loops)
 		delay_raw(133333);
 	}
 }
+
+void show_sd_sector(unsigned long sec)
+{
+	unsigned char sec_buf[512] = {0};
+	sd_read_irom(sec, 1, sec_buf);
+
+	unsigned int totol_block = *(volatile unsigned int *)(0xD0037480);
+	printf("Show SD Secot:%d/%d\n", sec+1, totol_block);
+
+	int i,j;	//16 * 32
+	unsigned int loc = sec << 9;
+	for (i = 0 ; i < 32; i++)
+	{
+		printf("0x%08X:", loc);
+		for (j = 0; j < 16;j++)
+		{
+			unsigned int off = i * 16 + j;
+			printf("%02X ", sec_buf[off]);
+		}
+		printf("\n");
+		loc += 16;
+	}
+}
+
+
 void start_armboot(void)
 {
 	serial_init();
 	serial_puts("\n############ sd loader for TQ210 #############\n");
 	int count = 0;
+	unsigned int totol_block = *(volatile unsigned int *)(0xD0037480);
 	while(1)
 	{
+		show_sd_sector(count++);
 		delay(1000);
-		debug("##### count = %d #####\n", count++);
+		if (totol_block == count)
+		{
+			count = 0;
+		}
 	}
 }
