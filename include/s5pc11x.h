@@ -1,0 +1,772 @@
+/*
+ * (C) Copyright 2003
+ * David Müller ELSOFT AG Switzerland. d.mueller@elsoft.ch
+ *
+ * See file CREDITS for list of people who contributed to this
+ * project.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
+ */
+
+/************************************************
+ * NAME	    : S5PC11X.h
+ * Version  : 31.3.2003
+ *
+ * common stuff for SAMSUNG S5PC11X SoC
+ ************************************************/
+
+#ifndef __S5PC11X_H__
+#define __S5PC11X_H__
+
+#include <common.h>
+typedef vu_char		S5PC11X_REG8;
+typedef vu_short	S5PC11X_REG16;
+typedef vu_long		S5PC11X_REG32;
+
+/* Memory controller (see manual chapter 5) */
+typedef struct {
+	S5PC11X_REG32	BWSCON;
+	S5PC11X_REG32	BANKCON[8];
+	S5PC11X_REG32	REFRESH;
+	S5PC11X_REG32	BANKSIZE;
+	S5PC11X_REG32	MRSRB6;
+	S5PC11X_REG32	MRSRB7;
+} /*__attribute__((__packed__))*/ S5PC11X_MEMCTL;
+
+
+/* USB HOST (see manual chapter 12) */
+typedef struct {
+	S5PC11X_REG32	HcRevision;
+	S5PC11X_REG32	HcControl;
+	S5PC11X_REG32	HcCommonStatus;
+	S5PC11X_REG32	HcInterruptStatus;
+	S5PC11X_REG32	HcInterruptEnable;
+	S5PC11X_REG32	HcInterruptDisable;
+	S5PC11X_REG32	HcHCCA;
+	S5PC11X_REG32	HcPeriodCuttendED;
+	S5PC11X_REG32	HcControlHeadED;
+	S5PC11X_REG32	HcControlCurrentED;
+	S5PC11X_REG32	HcBulkHeadED;
+	S5PC11X_REG32	HcBuldCurrentED;
+	S5PC11X_REG32	HcDoneHead;
+	S5PC11X_REG32	HcRmInterval;
+	S5PC11X_REG32	HcFmRemaining;
+	S5PC11X_REG32	HcFmNumber;
+	S5PC11X_REG32	HcPeriodicStart;
+	S5PC11X_REG32	HcLSThreshold;
+	S5PC11X_REG32	HcRhDescriptorA;
+	S5PC11X_REG32	HcRhDescriptorB;
+	S5PC11X_REG32	HcRhStatus;
+	S5PC11X_REG32	HcRhPortStatus1;
+	S5PC11X_REG32	HcRhPortStatus2;
+} /*__attribute__((__packed__))*/ S5PC11X_USB_HOST;
+
+
+/* INTERRUPT (see manual chapter 14) */
+typedef struct {
+	S5PC11X_REG32	SRCPND;
+	S5PC11X_REG32	INTMOD;
+	S5PC11X_REG32	INTMSK;
+	S5PC11X_REG32	PRIORITY;
+	S5PC11X_REG32	INTPND;
+	S5PC11X_REG32	INTOFFSET;
+} /*__attribute__((__packed__))*/ S5PC11X_INTERRUPT;
+
+
+/* DMAS (see manual chapter 8) */
+typedef struct {
+	S5PC11X_REG32	DISRC;
+	S5PC11X_REG32	DIDST;
+	S5PC11X_REG32	DCON;
+	S5PC11X_REG32	DSTAT;
+	S5PC11X_REG32	DCSRC;
+	S5PC11X_REG32	DCDST;
+	S5PC11X_REG32	DMASKTRIG;
+} /*__attribute__((__packed__))*/ S5PC11X_DMA;
+
+typedef struct {
+	S5PC11X_DMA	dma[4];
+} /*__attribute__((__packed__))*/ S5PC11X_DMAS;
+
+
+/* CLOCK & POWER MANAGEMENT (see S3C2400 manual chapter 6) */
+/*                          (see S3C2410 manual chapter 7) */
+typedef struct {
+	S5PC11X_REG32	LOCKTIME;
+	S5PC11X_REG32	MPLLCON;
+	S5PC11X_REG32	UPLLCON;
+	S5PC11X_REG32	CLKCON;
+	S5PC11X_REG32	CLKSLOW;
+	S5PC11X_REG32	CLKDIVN;
+} /*__attribute__((__packed__))*/ S5PC11X_CLOCK_POWER;
+
+
+/* LCD CONTROLLER (see manual chapter 15) */
+typedef struct {
+	S5PC11X_REG32	LCDCON1;
+	S5PC11X_REG32	LCDCON2;
+	S5PC11X_REG32	LCDCON3;
+	S5PC11X_REG32	LCDCON4;
+	S5PC11X_REG32	LCDCON5;
+	S5PC11X_REG32	LCDSADDR1;
+	S5PC11X_REG32	LCDSADDR2;
+	S5PC11X_REG32	LCDSADDR3;
+	S5PC11X_REG32	REDLUT;
+	S5PC11X_REG32	GREENLUT;
+	S5PC11X_REG32	BLUELUT;
+	S5PC11X_REG32	res[8];
+	S5PC11X_REG32	DITHMODE;
+	S5PC11X_REG32	TPAL;
+} /*__attribute__((__packed__))*/ S5PC11X_LCD;
+
+
+/* NAND FLASH (see S3C2410 manual chapter 6) */
+typedef struct {
+	S5PC11X_REG32	NFCONF;
+	S5PC11X_REG32	NFCMD;
+	S5PC11X_REG32	NFADDR;
+	S5PC11X_REG32	NFDATA;
+	S5PC11X_REG32	NFSTAT;
+	S5PC11X_REG32	NFECC;
+} /*__attribute__((__packed__))*/ S3C2410_NAND;
+
+
+/* UART (see manual chapter 11) */
+typedef struct {
+	S5PC11X_REG32	ULCON;
+	S5PC11X_REG32	UCON;
+	S5PC11X_REG32	UFCON;
+	S5PC11X_REG32	UMCON;
+	S5PC11X_REG32	UTRSTAT;
+	S5PC11X_REG32	UERSTAT;
+	S5PC11X_REG32	UFSTAT;
+	S5PC11X_REG32	UMSTAT;
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	UTXH;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	URXH;
+#else /* Little Endian */
+	S5PC11X_REG8	UTXH;
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	URXH;
+	S5PC11X_REG8	res2[3];
+#endif
+	S5PC11X_REG32	UBRDIV;
+} /*__attribute__((__packed__))*/ S5PC11X_UART;
+
+
+/* PWM TIMER (see manual chapter 10) */
+typedef struct {
+	S5PC11X_REG32	TCNTB;
+	S5PC11X_REG32	TCMPB;
+	S5PC11X_REG32	TCNTO;
+} /*__attribute__((__packed__))*/ S5PC11X_TIMER;
+
+typedef struct {
+	S5PC11X_REG32	TCFG0;
+	S5PC11X_REG32	TCFG1;
+	S5PC11X_REG32	TCON;
+	S5PC11X_TIMER	ch[4];
+	S5PC11X_REG32	TCNTB4;
+	S5PC11X_REG32	TCNTO4;
+} /*__attribute__((__packed__))*/ S5PC11X_TIMERS;
+
+
+/* USB DEVICE (see manual chapter 13) */
+typedef struct {
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res[3];
+	S5PC11X_REG8	EP_FIFO_REG;
+#else /*  little endian */
+	S5PC11X_REG8	EP_FIFO_REG;
+	S5PC11X_REG8	res[3];
+#endif
+} /*__attribute__((__packed__))*/ S5PC11X_USB_DEV_FIFOS;
+
+typedef struct {
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	EP_DMA_CON;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	EP_DMA_UNIT;
+	S5PC11X_REG8	res3[3];
+	S5PC11X_REG8	EP_DMA_FIFO;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG8	EP_DMA_TTC_L;
+	S5PC11X_REG8	res5[3];
+	S5PC11X_REG8	EP_DMA_TTC_M;
+	S5PC11X_REG8	res6[3];
+	S5PC11X_REG8	EP_DMA_TTC_H;
+#else /*  little endian */
+	S5PC11X_REG8	EP_DMA_CON;
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	EP_DMA_UNIT;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	EP_DMA_FIFO;
+	S5PC11X_REG8	res3[3];
+	S5PC11X_REG8	EP_DMA_TTC_L;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG8	EP_DMA_TTC_M;
+	S5PC11X_REG8	res5[3];
+	S5PC11X_REG8	EP_DMA_TTC_H;
+	S5PC11X_REG8	res6[3];
+#endif
+} /*__attribute__((__packed__))*/ S5PC11X_USB_DEV_DMAS;
+
+typedef struct {
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	FUNC_ADDR_REG;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	PWR_REG;
+	S5PC11X_REG8	res3[3];
+	S5PC11X_REG8	EP_INT_REG;
+	S5PC11X_REG8	res4[15];
+	S5PC11X_REG8	USB_INT_REG;
+	S5PC11X_REG8	res5[3];
+	S5PC11X_REG8	EP_INT_EN_REG;
+	S5PC11X_REG8	res6[15];
+	S5PC11X_REG8	USB_INT_EN_REG;
+	S5PC11X_REG8	res7[3];
+	S5PC11X_REG8	FRAME_NUM1_REG;
+	S5PC11X_REG8	res8[3];
+	S5PC11X_REG8	FRAME_NUM2_REG;
+	S5PC11X_REG8	res9[3];
+	S5PC11X_REG8	INDEX_REG;
+	S5PC11X_REG8	res10[7];
+	S5PC11X_REG8	MAXP_REG;
+	S5PC11X_REG8	res11[3];
+	S5PC11X_REG8	EP0_CSR_IN_CSR1_REG;
+	S5PC11X_REG8	res12[3];
+	S5PC11X_REG8	IN_CSR2_REG;
+	S5PC11X_REG8	res13[7];
+	S5PC11X_REG8	OUT_CSR1_REG;
+	S5PC11X_REG8	res14[3];
+	S5PC11X_REG8	OUT_CSR2_REG;
+	S5PC11X_REG8	res15[3];
+	S5PC11X_REG8	OUT_FIFO_CNT1_REG;
+	S5PC11X_REG8	res16[3];
+	S5PC11X_REG8	OUT_FIFO_CNT2_REG;
+#else /*  little endian */
+	S5PC11X_REG8	FUNC_ADDR_REG;
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	PWR_REG;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	EP_INT_REG;
+	S5PC11X_REG8	res3[15];
+	S5PC11X_REG8	USB_INT_REG;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG8	EP_INT_EN_REG;
+	S5PC11X_REG8	res5[15];
+	S5PC11X_REG8	USB_INT_EN_REG;
+	S5PC11X_REG8	res6[3];
+	S5PC11X_REG8	FRAME_NUM1_REG;
+	S5PC11X_REG8	res7[3];
+	S5PC11X_REG8	FRAME_NUM2_REG;
+	S5PC11X_REG8	res8[3];
+	S5PC11X_REG8	INDEX_REG;
+	S5PC11X_REG8	res9[7];
+	S5PC11X_REG8	MAXP_REG;
+	S5PC11X_REG8	res10[7];
+	S5PC11X_REG8	EP0_CSR_IN_CSR1_REG;
+	S5PC11X_REG8	res11[3];
+	S5PC11X_REG8	IN_CSR2_REG;
+	S5PC11X_REG8	res12[3];
+	S5PC11X_REG8	OUT_CSR1_REG;
+	S5PC11X_REG8	res13[7];
+	S5PC11X_REG8	OUT_CSR2_REG;
+	S5PC11X_REG8	res14[3];
+	S5PC11X_REG8	OUT_FIFO_CNT1_REG;
+	S5PC11X_REG8	res15[3];
+	S5PC11X_REG8	OUT_FIFO_CNT2_REG;
+	S5PC11X_REG8	res16[3];
+#endif /*  __BIG_ENDIAN */
+	S5PC11X_USB_DEV_FIFOS	fifo[5];
+	S5PC11X_USB_DEV_DMAS	dma[5];
+} /*__attribute__((__packed__))*/ S5PC11X_USB_DEVICE;
+
+
+/* WATCH DOG TIMER (see manual chapter 18) */
+typedef struct {
+	S5PC11X_REG32	WTCON;
+	S5PC11X_REG32	WTDAT;
+	S5PC11X_REG32	WTCNT;
+} /*__attribute__((__packed__))*/ S5PC11X_WATCHDOG;
+
+
+/* IIC (see manual chapter 20) */
+typedef struct {
+	S5PC11X_REG32	IICCON;
+	S5PC11X_REG32	IICSTAT;
+	S5PC11X_REG32	IICADD;
+	S5PC11X_REG32	IICDS;
+} /*__attribute__((__packed__))*/ S5PC11X_I2C;
+
+
+/* IIS (see manual chapter 21) */
+typedef struct {
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG16	res1;
+	S5PC11X_REG16	IISCON;
+	S5PC11X_REG16	res2;
+	S5PC11X_REG16	IISMOD;
+	S5PC11X_REG16	res3;
+	S5PC11X_REG16	IISPSR;
+	S5PC11X_REG16	res4;
+	S5PC11X_REG16	IISFCON;
+	S5PC11X_REG16	res5;
+	S5PC11X_REG16	IISFIFO;
+#else /*  little endian */
+	S5PC11X_REG16	IISCON;
+	S5PC11X_REG16	res1;
+	S5PC11X_REG16	IISMOD;
+	S5PC11X_REG16	res2;
+	S5PC11X_REG16	IISPSR;
+	S5PC11X_REG16	res3;
+	S5PC11X_REG16	IISFCON;
+	S5PC11X_REG16	res4;
+	S5PC11X_REG16	IISFIFO;
+	S5PC11X_REG16	res5;
+#endif
+} /*__attribute__((__packed__))*/ S5PC11X_I2S;
+
+
+/* I/O PORT (see manual chapter 9) */
+typedef struct {
+
+} /*__attribute__((__packed__))*/ S5PC11X_GPIO;
+
+
+/* RTC (see manual chapter 17) */
+typedef struct {
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res1[67];
+	S5PC11X_REG8	RTCCON;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	TICNT;
+	S5PC11X_REG8	res3[11];
+	S5PC11X_REG8	RTCALM;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG8	ALMSEC;
+	S5PC11X_REG8	res5[3];
+	S5PC11X_REG8	ALMMIN;
+	S5PC11X_REG8	res6[3];
+	S5PC11X_REG8	ALMHOUR;
+	S5PC11X_REG8	res7[3];
+	S5PC11X_REG8	ALMDATE;
+	S5PC11X_REG8	res8[3];
+	S5PC11X_REG8	ALMMON;
+	S5PC11X_REG8	res9[3];
+	S5PC11X_REG8	ALMYEAR;
+	S5PC11X_REG8	res10[3];
+	S5PC11X_REG8	RTCRST;
+	S5PC11X_REG8	res11[3];
+	S5PC11X_REG8	BCDSEC;
+	S5PC11X_REG8	res12[3];
+	S5PC11X_REG8	BCDMIN;
+	S5PC11X_REG8	res13[3];
+	S5PC11X_REG8	BCDHOUR;
+	S5PC11X_REG8	res14[3];
+	S5PC11X_REG8	BCDDATE;
+	S5PC11X_REG8	res15[3];
+	S5PC11X_REG8	BCDDAY;
+	S5PC11X_REG8	res16[3];
+	S5PC11X_REG8	BCDMON;
+	S5PC11X_REG8	res17[3];
+	S5PC11X_REG8	BCDYEAR;
+#else /*  little endian */
+	S5PC11X_REG8	res0[64];
+	S5PC11X_REG8	RTCCON;
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	TICNT;
+	S5PC11X_REG8	res2[11];
+	S5PC11X_REG8	RTCALM;
+	S5PC11X_REG8	res3[3];
+	S5PC11X_REG8	ALMSEC;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG8	ALMMIN;
+	S5PC11X_REG8	res5[3];
+	S5PC11X_REG8	ALMHOUR;
+	S5PC11X_REG8	res6[3];
+	S5PC11X_REG8	ALMDATE;
+	S5PC11X_REG8	res7[3];
+	S5PC11X_REG8	ALMMON;
+	S5PC11X_REG8	res8[3];
+	S5PC11X_REG8	ALMYEAR;
+	S5PC11X_REG8	res9[3];
+	S5PC11X_REG8	RTCRST;
+	S5PC11X_REG8	res10[3];
+	S5PC11X_REG8	BCDSEC;
+	S5PC11X_REG8	res11[3];
+	S5PC11X_REG8	BCDMIN;
+	S5PC11X_REG8	res12[3];
+	S5PC11X_REG8	BCDHOUR;
+	S5PC11X_REG8	res13[3];
+	S5PC11X_REG8	BCDDATE;
+	S5PC11X_REG8	res14[3];
+	S5PC11X_REG8	BCDDAY;
+	S5PC11X_REG8	res15[3];
+	S5PC11X_REG8	BCDMON;
+	S5PC11X_REG8	res16[3];
+	S5PC11X_REG8	BCDYEAR;
+	S5PC11X_REG8	res17[3];
+#endif
+} /*__attribute__((__packed__))*/ S5PC11X_RTC;
+
+
+/* ADC (see manual chapter 16) */
+typedef struct {
+	S5PC11X_REG32	ADCCON;
+	S5PC11X_REG32	ADCDAT;
+} /*__attribute__((__packed__))*/ S3C2400_ADC;
+
+
+/* ADC (see manual chapter 16) */
+typedef struct {
+	S5PC11X_REG32	ADCCON;
+	S5PC11X_REG32	ADCTSC;
+	S5PC11X_REG32	ADCDLY;
+	S5PC11X_REG32	ADCDAT0;
+	S5PC11X_REG32	ADCDAT1;
+} /*__attribute__((__packed__))*/ S3C2410_ADC;
+typedef struct{
+	//0xE1700000
+	S5PC11X_REG32	TSADCCON0;
+	S5PC11X_REG32	TSCON0;
+	S5PC11X_REG32	TSDLY0;
+	S5PC11X_REG32	TSDATX0;
+	//0xE1700010	
+	S5PC11X_REG32	TSDATY0;
+	S5PC11X_REG32	TSPENSTAT0;
+	S5PC11X_REG32	CLRINTADC0;
+	S5PC11X_REG32	ADCMUX;
+	//0xE1700020
+	S5PC11X_REG32	CLRINTPEN0;
+	S5PC11X_REG8	reg1[0xFDC];
+
+	S5PC11X_REG32	TSADCCON1;
+	S5PC11X_REG32	TSCON1;
+	S5PC11X_REG32	TSDLY1;
+	S5PC11X_REG32	TSDATX1;
+	
+	S5PC11X_REG32	TSDATY1;
+	S5PC11X_REG32	TSPENSTAT1;
+	S5PC11X_REG32	CLRINTADC1; 
+	S5PC11X_REG8	reg2[0x4];
+	S5PC11X_REG32	CLRINTPEN1;
+
+}s5pv210_tsadc;
+
+/* SPI (see manual chapter 22) */
+typedef struct {
+	S5PC11X_REG32	SPCON;
+	S5PC11X_REG32	SPSTA;
+	S5PC11X_REG32	SPPIN;
+	S5PC11X_REG32	SPPRE;
+	S5PC11X_REG32	SPTDAT;
+	S5PC11X_REG32	SPRDAT;
+	S5PC11X_REG32	res[2];
+} __attribute__((__packed__)) S5PC11X_SPI_CHANNEL;
+
+typedef struct {
+	S5PC11X_SPI_CHANNEL	ch[S5PC11X_SPI_CHANNELS];
+} /*__attribute__((__packed__))*/ S5PC11X_SPI;
+
+
+/* MMC INTERFACE (see S3C2400 manual chapter 19) */
+typedef struct {
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	MMCON;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	MMCRR;
+	S5PC11X_REG8	res3[3];
+	S5PC11X_REG8	MMFCON;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG8	MMSTA;
+	S5PC11X_REG16	res5;
+	S5PC11X_REG16	MMFSTA;
+	S5PC11X_REG8	res6[3];
+	S5PC11X_REG8	MMPRE;
+	S5PC11X_REG16	res7;
+	S5PC11X_REG16	MMLEN;
+	S5PC11X_REG8	res8[3];
+	S5PC11X_REG8	MMCR7;
+	S5PC11X_REG32	MMRSP[4];
+	S5PC11X_REG8	res9[3];
+	S5PC11X_REG8	MMCMD0;
+	S5PC11X_REG32	MMCMD1;
+	S5PC11X_REG16	res10;
+	S5PC11X_REG16	MMCR16;
+	S5PC11X_REG8	res11[3];
+	S5PC11X_REG8	MMDAT;
+#else
+	S5PC11X_REG8	MMCON;
+	S5PC11X_REG8	res1[3];
+	S5PC11X_REG8	MMCRR;
+	S5PC11X_REG8	res2[3];
+	S5PC11X_REG8	MMFCON;
+	S5PC11X_REG8	res3[3];
+	S5PC11X_REG8	MMSTA;
+	S5PC11X_REG8	res4[3];
+	S5PC11X_REG16	MMFSTA;
+	S5PC11X_REG16	res5;
+	S5PC11X_REG8	MMPRE;
+	S5PC11X_REG8	res6[3];
+	S5PC11X_REG16	MMLEN;
+	S5PC11X_REG16	res7;
+	S5PC11X_REG8	MMCR7;
+	S5PC11X_REG8	res8[3];
+	S5PC11X_REG32	MMRSP[4];
+	S5PC11X_REG8	MMCMD0;
+	S5PC11X_REG8	res9[3];
+	S5PC11X_REG32	MMCMD1;
+	S5PC11X_REG16	MMCR16;
+	S5PC11X_REG16	res10;
+	S5PC11X_REG8	MMDAT;
+	S5PC11X_REG8	res11[3];
+#endif
+} /*__attribute__((__packed__))*/ S3C2400_MMC;
+
+
+/* SD INTERFACE (see S3C2410 manual chapter 19) */
+typedef struct {
+	S5PC11X_REG32	SDICON;
+	S5PC11X_REG32	SDIPRE;
+	S5PC11X_REG32	SDICARG;
+	S5PC11X_REG32	SDICCON;
+	S5PC11X_REG32	SDICSTA;
+	S5PC11X_REG32	SDIRSP0;
+	S5PC11X_REG32	SDIRSP1;
+	S5PC11X_REG32	SDIRSP2;
+	S5PC11X_REG32	SDIRSP3;
+	S5PC11X_REG32	SDIDTIMER;
+	S5PC11X_REG32	SDIBSIZE;
+	S5PC11X_REG32	SDIDCON;
+	S5PC11X_REG32	SDIDCNT;
+	S5PC11X_REG32	SDIDSTA;
+	S5PC11X_REG32	SDIFSTA;
+#ifdef __BIG_ENDIAN
+	S5PC11X_REG8	res[3];
+	S5PC11X_REG8	SDIDAT;
+#else
+	S5PC11X_REG8	SDIDAT;
+	S5PC11X_REG8	res[3];
+#endif
+	S5PC11X_REG32	SDIIMSK;
+} /*__attribute__((__packed__))*/ S3C2410_SDI;
+
+#ifdef CONFIG_EmbedSky_LCD
+typedef struct {
+	//0xF8000000
+	volatile u32	VIDCON0;
+	volatile u32	VIDCON1;
+	volatile u32	VIDCON2;
+	volatile u32	VIDCON3;
+	//0xF8000010
+	volatile u32	VIDTCON0;
+	volatile u32	VIDTCON1;
+	volatile u32	VIDTCON2;
+	volatile u32	VIDTCON3;
+	//0xF8000020
+	volatile u32	WINCON0;
+	volatile u32	WINCON1;
+	volatile u32	WINCON2;
+	volatile u32	WINCON3;
+	//0xF8000030
+	volatile u32	WINCON4;
+	volatile u32	SHADOWCON;
+	volatile u8	res0[8];
+	//0xF8000040
+	volatile u32	VIDOSD0A;
+	volatile u32	VIDOSD0B;
+	volatile u32	VIDOSD0C;
+	volatile u8	res4[4];
+	//0xF8000050
+	volatile u32	VIDOSD1A;
+	volatile u32	VIDOSD1B;
+	volatile u32	VIDOSD1C;
+	volatile u32	VIDOSD1D;
+	//0xF8000060
+	volatile u32	VIDOSD2A;
+	volatile u32	VIDOSD2B;
+	volatile u32	VIDOSD2C;
+	volatile u32	VIDOSD2D;
+	//0xF8000070
+	volatile u32	VIDOSD3A;
+	volatile u32	VIDOSD3B;
+	volatile u32	VIDOSD3C;
+	volatile u8	res5[4];
+	//0xF8000080
+	volatile u32	VIDOSD4A;
+	volatile u32	VIDOSD4B;
+	volatile u32	VIDOSD4C;
+	volatile u8	res60[4];
+	//0xF8000090
+	volatile u8	res61[0x10];
+	//0xF80000A0
+	volatile u32	VIDW00ADD0B0;
+	volatile u32	VIDW00ADD0B1;
+	volatile u32	VIDW01ADD0B0;
+	volatile u32	VIDW01ADD0B1;
+	//0xF80000B0
+	volatile u32	VIDW02ADD0B0;
+	volatile u32	VIDW02ADD0B1;
+	volatile u32	VIDW03ADD0B0;
+	volatile u32	VIDW03ADD0B1;
+	//0xF80000C0
+	volatile u32	VIDW04ADD0B0;
+	volatile u32	VIDW04ADD0B1;
+	volatile u8	res1[8];
+	//0xF80000D0
+	volatile u32	VIDW00ADD1B0;
+	volatile u32	VIDW00ADD1B1;
+	volatile u32	VIDW01ADD1B0;
+	volatile u32	VIDW01ADD1B1;
+	//0xF80000E0
+	volatile u32	VIDW02ADD1B0;
+	volatile u32	VIDW02ADD1B1;
+	volatile u32	VIDW03ADD1B0;
+	volatile u32	VIDW03ADD1B1;
+	//0xF80000F0
+	volatile u32	VIDW04ADD1B0;
+	volatile u32	VIDW04ADD1B1;
+	volatile u8	res2[8];
+	//0xF8000100
+	volatile u32	VIDW00ADD2;
+	volatile u32	VIDW01ADD2;
+	volatile u32	VIDW02ADD2;
+	volatile u32	VIDW03ADD2;
+	//0xF8000110
+	volatile u32	VIDW04ADD2;
+	volatile u8	res90[12];
+	//0xF8000120
+	volatile u8	res91[0x10];
+	//0xF8000130
+	volatile u32	VIDINTCON0;
+	volatile u32	VIDINTCON1;
+	volatile u8	res9a[8];
+	//0xF8000140
+	volatile u32	W1KEYCON0;
+	volatile u32	W1KEYCON1;
+	volatile u32	W2KEYCON0;
+	volatile u32	W2KEYCON1;
+	//0xF8000150
+	volatile u32	W3KEYCON0;
+	volatile u32	W3KEYCON1;
+	volatile u32	W4KEYCON0;
+	volatile u32	W4KEYCON1;
+	//0xF8000160
+	volatile u32	W1KEYALPHA;
+	volatile u32	W2KEYALPHA;
+	volatile u32	W3KEYALPHA;
+	volatile u32	W4KEYALPHA;
+	//0xF8000170
+	volatile u32	DITHMODE;
+	volatile u8	res9b[12];
+	//0xF8000180
+	volatile u32	WIN0MAP;
+	volatile u32	WIN1MAP;
+	volatile u32	WIN2MAP;
+	volatile u32	WIN3MAP;
+	//0xF8000190
+	volatile u32	WIN4MAP;
+	volatile u8	res9c[8];
+	volatile u32	WPALCON_H;
+	//0xF80001A0
+	volatile u32	WPALCON_L;
+	volatile u32	TRIGCON;
+	volatile u8	res9d[8];
+	//0xF80001B0
+	volatile u32	I80IFCONA0;
+	volatile u32	I80IFCONA1;
+	volatile u32	I80IFCONB0;
+	volatile u32	I80IFCONB1;
+	//0xF80001C0
+	volatile u32	COLORGAINCON;	
+	volatile u8	res19[12];
+	//0xF80001D0
+	volatile u32	LDI_CMDCON0;
+	volatile u32	LDI_CMDCON1;
+	volatile u8	res20[8];
+	//0xF80001E0
+	volatile u32	SIFCCON0;
+	volatile u32	SIFCCON1;
+	volatile u32	SIFCCON2;
+	volatile u32	HUECOEF00;
+	//0xF80001F0
+	volatile u32	HUECOEF01;
+	volatile u32	HUECOEF10;
+	volatile u32	HUECOEF11;
+	volatile u32	HUEOFFSET;
+	//0xF8000200
+	volatile u32	VIDW0ALPHA0;
+	volatile u32	VIDW0ALPHA1;
+	volatile u32	VIDW1ALPHA0;
+	volatile u32	VIDW1ALPHA1;
+	//0xF8000210
+	volatile u32	VIDW2ALPHA0;
+	volatile u32	VIDW2ALPHA1;
+	volatile u32	VIDW3ALPHA0;
+	volatile u32	VIDW3ALPHA1;
+	//0xF8000220
+	volatile u32	VIDW4ALPHA0;
+	volatile u32	VIDW4ALPHA1;
+	volatile u8	resa21[8];
+	//0xF8000230
+	volatile u8	resb21[0x10];
+	//0xF8000240
+	volatile u8	resc21[4];
+	volatile u32	BLENDEQ1;
+	volatile u32	BLENDEQ2;
+	volatile u32	BLENDEQ3;
+	//0xF8000250
+	volatile u32	BLENDEQ4;
+	volatile u8	rescd21[12];
+	//0xF8000260
+	volatile u32	BLENDCON;
+	volatile u32	W0RTQOSCON;
+	volatile u32	W1RTQOSCON;
+	volatile u32	W2RTQOSCON;
+	//0xF8000270
+	volatile u32	W3RTQOSCON;
+	volatile u32	W4RTQOSCON;
+	volatile u8	res2a[8];
+	//0xF8000280
+	volatile u32	LDI_CMD0;
+	volatile u32	LDI_CMD1;
+	volatile u32	LDI_CMD2;
+	volatile u32	LDI_CMD3;
+	//0xF8000290
+	volatile u32	LDI_CMD4;
+	volatile u32	LDI_CMD5;
+	volatile u32	LDI_CMD6;
+	volatile u32	LDI_CMD7;
+	//0xF80002A0
+	volatile u32	LDI_CMD8;
+	volatile u32	LDI_CMD9;
+	volatile u32	LDI_CMD10;
+	volatile u32	LDI_CMD11;
+	//0xF80002B0
+	volatile u8	res22[0xcc];
+	//0xF800037c
+	//........................
+
+} s5pv210_fb;
+#endif
+
+#endif /*__S5PC11X_H__*/
