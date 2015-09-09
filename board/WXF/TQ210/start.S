@@ -246,7 +246,7 @@ lp2:
         ldr	r1, [r0,#OMR_OFFSET]
         bic	r2, r1, #0xffffffc1
 
-	/*ç”µæºç®¡ç†ï¼Œä¿æŒä¾›ç”µ*/
+	/*µçÔ´¹ÜÀí£¬±£³Ö¹©µç*/
 #ifdef CONFIG_TQ210_IIC_PM_CHIP
 	/* PS_HOLD(GPJ2_5) set to output high */
 	ldr		r0, =ELFIN_GPIO_BASE
@@ -344,9 +344,57 @@ lp2:
 	cmp     r1, r2                  /* compare r0, r1                  */
 	beq     after_copy		/* r0 == r1 then skip flash copy   */
 
+#ifndef CONFIG_MINI_BOOT
+#if defined(CONFIG_EVT1)
+	/* If BL1 was copied from SD/MMC CH2 */
+	ldr	r0, =0xD0037488
+	ldr	r1, [r0]
+	ldr	r2, =0xEB200000
+	cmp	r1, r2
+	beq     mmcsd_boot
+#endif
+
+	ldr		r0, =INF_REG_BASE
+	ldr		r1, [r0, #INF_REG3_OFFSET]
+	cmp		r1, #BOOT_NAND		/* 0x0 => boot device is nand */
+	beq		nand_boot
+	cmp		r1, #BOOT_ONENAND	/* 0x1 => boot device is onenand */
+	beq		onenand_boot
+	cmp		r1, #BOOT_MMCSD
+	beq		mmcsd_boot
+	cmp		r1, #BOOT_NOR
+	beq		nor_boot
+	cmp		r1, #BOOT_SEC_DEV
+	beq		mmcsd_boot
+
+nand_boot:
+
+	mov		r0, #0x1000
+	bl		copy_from_nand
+	b		after_copy
+
+onenand_boot:
+	bl		onenand_bl2_copy
+	b		after_copy
+
+mmcsd_boot:
+#if DELETE
+	ldr		sp, _TEXT_PHY_BASE      
+	sub		sp, sp, #12
+	mov		fp, #0
+#endif
+	bl		movi_bl2_copy
+	b		after_copy
+
+nor_boot:
+	bl		read_hword
+	b		after_copy
+
+#endif /*  CONFIG_MINI_BOOT */
+
 after_copy:
+
 #if defined(CONFIG_ENABLE_MMU)
-	bl	copy_mmu_table
 enable_mmu:
 	/* enable domain access */
 	ldr	r5, =0x0000ffff
@@ -374,6 +422,7 @@ mmu_on:
 skip_hw_init:
 	/* Set up the stack						    */
 stack_setup:
+#ifndef CONFIG_MINI_BOOT
 #if defined(CONFIG_MEMORY_UPPER_CODE)
 	ldr	sp, =(CFG_UBOOT_BASE + CFG_UBOOT_SIZE - 0x1000)
 #else
@@ -386,6 +435,9 @@ stack_setup:
 	sub	sp, r0, #12		/* leave 3 words for abort-stack    */
 
 #endif
+#else
+	ldr	sp, =0xd0030000
+#endif /*  CONFIG_MINI_BOOT */
 
 clear_bss:
 	ldr	r0, _bss_start		/* find start of bss segment        */
@@ -407,6 +459,57 @@ _start_armboot:
 _mmu_table_base:
 	.word mmu_table
 #endif
+
+#ifndef CONFIG_MINI_BOOT
+/*
+ * copy U-Boot to SDRAM and jump to ram (from NAND or OneNAND)
+ * r0: size to be compared
+ * Load 1'st 2blocks to RAM because U-boot's size is larger than 1block(128k) size
+ */
+	.globl copy_from_nand
+copy_from_nand:
+	push	{lr}		/* save return address */
+
+	mov	r9, r0
+	
+	mov	r9, #0x100		/* Compare about 8KB */
+	bl	copy_uboot_to_ram
+	tst 	r0, #0x0
+	bne	copy_failed
+
+#if defined(CONFIG_EVT1)
+	ldr	r0, =0xd0020000
+#else	
+	ldr	r0, =0xd0030000
+#endif
+	ldr	r1, _TEXT_PHY_BASE	/* 0x23e00000 */
+
+#if !defined(CONFIG_SECURE_BOOT)
+1:	ldr	r3, [r0], #4
+	ldr	r4, [r1], #4
+	teq	r3, r4
+	bne	compare_failed	/* not matched */
+	subs	r9, r9, #4
+	bne	1b
+#endif
+	pop	{pc}		/* all is OK */
+
+copy_failed:
+/**************lhh add start******************/
+	ldr r0,= 0xE0200080
+	ldr	r1, =(0x11<<12)
+	str	r1, [r0, #0]
+	ldr	r1, =(0x2<<3)
+	str	r1, [r0, #4]
+/**************lhh add end *******************/	
+
+	nop			/* copy from nand failed */
+	b	copy_failed
+
+compare_failed:
+	nop			/* compare failed */
+	b	compare_failed
+#endif /*  CONFIG_MINI_BOOT */
 
 /*
  * we assume that cache operation is done before. (eg. cleanup_before_linux())
