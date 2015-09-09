@@ -111,8 +111,10 @@ typedef volatile unsigned char	vu_char;
 #include <flash.h>
 #include <image.h>
 
+#define DEBUG
 #ifdef	DEBUG
-#define debug(fmt,args...)	printf (fmt ,##args)
+#define debug(fmt,args...)	do {printf("[debug]%s(%d)@%s()==>:", __FILE__, __LINE__, __FUNCTION__); \
+		printf (fmt ,##args); } while(0)
 #define debugX(level,fmt,args...) if (DEBUG>=level) printf(fmt,##args);
 #else
 #define debug(fmt,args...)

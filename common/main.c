@@ -48,13 +48,27 @@ void hang (void)
 	puts ("### ERROR ### Please RESET the board ###\n");
 	for (;;);
 }
-void trace(void)
+static inline void delay_raw(unsigned long loops)
 {
-	printf("\n############ wxf sd loader for TQ210 #############\n");
+	__asm__ volatile ("1:\n" "subs %0, %1, #1\n" "bne 1b":"=r" (loops):"0"(loops));
+}
+// —” ±loops ∫¡√Î
+inline void delay(unsigned long loops)
+{
+	unsigned long i;
+	for (i = 0; i < loops; i++)
+	{
+		delay_raw(133333);
+	}
 }
 void start_armboot(void)
 {
 	serial_init();
-	serial_puts("\n############ wxf sd loader for TQ210 #############\n");
-	while(1);
+	serial_puts("\n############ sd loader for TQ210 #############\n");
+	int count = 0;
+	while(1)
+	{
+		delay(1000);
+		debug("##### count = %d #####\n", count++);
+	}
 }

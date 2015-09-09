@@ -49,21 +49,21 @@
 #undef CONFIG_EmbedSky_LCD
 #endif
 
-#if 1												//æ˜¯å¦ä½¿ç”¨1GBå†…å­˜
+#if 1												//ÊÇ·ñÊ¹ÓÃ1GBÄÚ´æ
 #define CONFIG_TQ210_1G
 #else
 #undef CONFIG_TQ210_1G
 #endif
 
-#if 1								//æ˜¯å¦æ”¯æŒWinCEçš„çƒ§å†™
+#if 1								//ÊÇ·ñÖ§³ÖWinCEµÄÉÕĞ´
 #define CONFIG_SUPPORT_WINCE
 #else
 #undef CONFIG_SUPPORT_WINCE
 #endif
 
 #ifdef CONFIG_SUPPORT_WINCE
-#define CONFIG_RELOCATE_NK			//è§£æNK.biné•œåƒ
-#define CONFIG_WINCE_NK				//çƒ§å†™è§£æåçš„NK.biné•œåƒ
+#define CONFIG_RELOCATE_NK			//½âÎöNK.bin¾µÏñ
+#define CONFIG_WINCE_NK				//ÉÕĞ´½âÎöºóµÄNK.bin¾µÏñ
 #else
 #undef CONFIG_RELOCATE_NK
 #undef CONFIG_WINCE_NK
@@ -110,6 +110,8 @@
 #define CONFIG_SYS_CLK_FREQ					24000000	/* the TQ210 has 24MHz input clock */
 
 //#define CONFIG_ENABLE_MMU
+#undef CONFIG_ENABLE_MMU
+#define CONFIG_MINI_BOOT
 
 #ifdef CONFIG_ENABLE_MMU
 #define virt_to_phys(x)						virt_to_phy_tq210(x)
@@ -178,7 +180,7 @@
 /*
  * select serial console configuration
  */
-//ä¸²å£å·åœ¨è¿™é‡Œæ˜¯ä»1å¼€å§‹è®¡ç®—çš„åˆ°4ç»“æŸã€‚
+//´®¿ÚºÅÔÚÕâÀïÊÇ´Ó1¿ªÊ¼¼ÆËãµÄµ½4½áÊø¡£
 #define CONFIG_SERIAL1      			    1	/* we use UART1 on TQ210 */
 //#define CONFIG_SERIAL2      			    2	/* we use UART2 on TQ210 */
 //#define CONFIG_SERIAL3      			    3	/* we use UART3 on TQ210 */
