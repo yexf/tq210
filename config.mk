@@ -93,7 +93,7 @@ RANLIB	= $(CROSS_COMPILE)RANLIB
 # Load generated board configuration
 #sinclude $(OBJTREE)/include/autoconf.mk
 BOARDDIR = $(VENDOR)/$(BOARD)
-
+PLATFORM_CPPFLAGS += -ffunction-sections
 # include architecture dependend rules
 PLATFORM_CPPFLAGS += -DCONFIG_ARM -D__ARM__
 # include  CPU	specific rules
@@ -109,6 +109,7 @@ PLATFORM_CPPFLAGS +=$(call cc-option,-mapcs-32,-mabi=apcs-gnu)
 PLATFORM_CPPFLAGS +=$(call cc-option,-mno-thumb-interwork,)
 PLATFORM_RELFLAGS +=$(call cc-option,-mshort-load-bytes,$(call cc-option,-malignment-traps,))
 # include  SoC	specific rules
+LDFLAGS += --gc-sections
 # include board specific rules
 TEXT_BASE = 0xD0020000
 
