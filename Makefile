@@ -228,7 +228,7 @@ clean:
 		\( -name 'core' -o -name '*.bak' -o -name '*~' \
 		-o -name '*.o'	-o -name '*.a'	\) -print \
 		| xargs rm -f
-	@rm -f $(ALL) wxfld wxfld.map
+	@rm -f $(ALL) wxfld wxfld.map $(obj)include/autoconf.mk.dep $(obj)include/autoconf.mk $(VERSION_FILE)
 	@find -name '.depend' | xargs rm -f
 
 #########################################################################
