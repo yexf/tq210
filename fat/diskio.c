@@ -8,15 +8,16 @@
 /*-----------------------------------------------------------------------*/
 
 #include "diskio.h"		/* FatFs lower layer API */
-#include "usbdisk.h"	/* Example: Header file of existing USB MSD control module */
-#include "atadrive.h"	/* Example: Header file of existing ATA harddisk control module */
-#include "sdcard.h"		/* Example: Header file of existing MMC/SDC contorl module */
+//#include "usbdisk.h"	/* Example: USB drive control */
+//#include "atadrive.h"	/* Example: ATA drive control */
+#include "sd.h"			/* Example: MMC/SDC contorl */
 
 /* Definitions of physical drive number for each drive */
 #define ATA		0	/* Example: Map ATA harddisk to physical drive 0 */
 #define MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
 #define USB		2	/* Example: Map USB MSD to physical drive 2 */
 
+#define SDCARD 0
 
 /*-----------------------------------------------------------------------*/
 /* Get Drive Status                                                      */
@@ -26,32 +27,7 @@ DSTATUS disk_status (
 	BYTE pdrv		/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
-
-	switch (pdrv) {
-	case ATA :
-		result = ATA_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case MMC :
-		result = MMC_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case USB :
-		result = USB_disk_status();
-
-		// translate the reslut code here
-
-		return stat;
-	}
-	return STA_NOINIT;
+	return 0;
 }
 
 
@@ -64,32 +40,17 @@ DSTATUS disk_initialize (
 	BYTE pdrv				/* Physical drive nmuber to identify the drive */
 )
 {
-	DSTATUS stat;
-	int result;
-
+	DSTATUS stat = STA_NOINIT;
 	switch (pdrv) {
-	case ATA :
-		result = ATA_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case MMC :
-		result = MMC_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
-
-	case USB :
-		result = USB_disk_initialize();
-
-		// translate the reslut code here
-
-		return stat;
+    case SDCARD:
+        if (sd_init() == 0)
+			stat = 0;
+        break;
+    default:
+		stat = STA_NOINIT;
+        break;	
 	}
-	return STA_NOINIT;
+	return stat;
 }
 
 
@@ -105,39 +66,22 @@ DRESULT disk_read (
 	UINT count		/* Number of sectors to read */
 )
 {
-	DRESULT res;
-	int result;
+	int res = 0;
 
-	switch (pdrv) {
-	case ATA :
-		// translate the arguments here
-
-		result = ATA_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case MMC :
-		// translate the arguments here
-
-		result = MMC_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case USB :
-		// translate the arguments here
-
-		result = USB_disk_read(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+    if (!count)
+        return RES_PARERR;//count不能等于0，否则返回参数错误
+    switch(pdrv)
+    {
+        case SDCARD://SD卡
+            res = sd_read(sector, (WORD)count, (char *)buff);
+            break;
+        default:
+            res = 0;
+    }
+   //处理返回值，将SPI_SD_driver.c的返回值转成ff.c的返回值
+    if(res == 0x00)
+        return RES_ERROR;
+    return RES_OK;
 }
 
 
@@ -154,39 +98,21 @@ DRESULT disk_write (
 	UINT count			/* Number of sectors to write */
 )
 {
-	DRESULT res;
-	int result;
-
-	switch (pdrv) {
-	case ATA :
-		// translate the arguments here
-
-		result = ATA_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case MMC :
-		// translate the arguments here
-
-		result = MMC_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-
-	case USB :
-		// translate the arguments here
-
-		result = USB_disk_write(buff, sector, count);
-
-		// translate the reslut code here
-
-		return res;
-	}
-
-	return RES_PARERR;
+	BYTE res = 0;
+    if (!count)
+        return RES_PARERR;//count不能等于0，否则返回参数错误
+    switch(pdrv)
+    {
+        case SDCARD://SD卡
+            res = sd_write(sector, count,buff);
+            break;
+        default:
+            res = 0;
+    }
+    //处理返回值，将SPI_SD_driver.c的返回值转成ff.c的返回值
+    if(res == 0x00)
+        return RES_ERROR;
+    return RES_OK;
 }
 #endif
 
@@ -202,28 +128,40 @@ DRESULT disk_ioctl (
 	void *buff		/* Buffer to send/receive control data */
 )
 {
-	DRESULT res;
-	int result;
-
-	switch (pdrv) {
-	case ATA :
-
-		// Process of the command for the ATA drive
-
-		return res;
-
-	case MMC :
-
-		// Process of the command for the MMC/SD card
-
-		return res;
-
-	case USB :
-
-		// Process of the command the USB drive
-
-		return res;
-	}
+ DRESULT res;
+    if(pdrv == SDCARD)//SD卡
+    {
+        switch(cmd)
+        {
+        case CTRL_SYNC:
+            //            if (!SDHC_WaitForCard2TransferState(&sCh))
+            //                res = RES_ERROR;
+            //                if(SDCardWaitReady() == 0)
+            //                    res = RES_OK;
+            //                else
+            //                    res = RES_ERROR;
+            //                SDCardDisSelect();
+            res = RES_OK;
+            break;
+        case GET_SECTOR_SIZE:
+            *(WORD*)buff = (WORD)sd_info(si_sector_size);
+            res = RES_OK;
+            break;
+        case GET_BLOCK_SIZE:
+            *(WORD*)buff = (WORD)sd_info(si_block_size);
+            res = RES_OK;
+            break;
+        case GET_SECTOR_COUNT:
+            *(DWORD*)buff = (DWORD)sd_info(si_sector_count);
+            res = RES_OK;
+            break;
+        default:
+            res = RES_PARERR;
+            break;
+        }
+    } else
+        res = RES_ERROR;//其他的不支持
+    return res;
 
 	return RES_PARERR;
 }

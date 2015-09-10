@@ -1,6 +1,4 @@
 #
-# (C) Copyright 2004-2006
-# Wolfgang Denk, DENX Software Engineering, wd@denx.de.
 #
 # See file CREDITS for list of people who contributed to this
 # project.
@@ -12,7 +10,7 @@
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
@@ -23,27 +21,17 @@
 
 include $(TOPDIR)/config.mk
 
-LIB	= $(obj)libcommon.a
+LIB	= $(obj)libfat.a
 
 AOBJS	=
+COBJS	= ff.o diskio.o
 
-COBJS-y = board.o
-COBJS-y += serial.o 
-COBJS-y += console.o
-COBJS-y += sd.o 
-#COBJS-y += bootini.o 
-
-COBJS	:= $(COBJS-y)
-
-#env_auto.o#
 SRCS	:= $(AOBJS:.o=.S) $(COBJS:.o=.c)
 OBJS	:= $(addprefix $(obj),$(AOBJS) $(COBJS))
 
-CPPFLAGS += -I..
-
 all:	$(LIB) $(AOBJS)
 
-$(LIB): $(obj).depend $(OBJS)
+$(LIB):	$(obj).depend $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 
 

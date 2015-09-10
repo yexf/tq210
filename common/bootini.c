@@ -80,12 +80,7 @@ unsigned long go_exec (ulong (*entry)(int, char *[]), int argc, char *argv[])
 
 void bootini(const char *strBootFile)
 {
-	block_dev_desc_t sd_dev;
-	get_sdirom_dev(&sd_dev);
-	if (fat_register_device(&sd_dev, 0) == 0)
-	{
-		file_fat_ls("/");
-	}
+	f_mount();
 
 	char ini_buf[4096] = {0};
 	uint file_len = file_fat_read(strBootFile, ini_buf, 4096);
