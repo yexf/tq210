@@ -14,7 +14,7 @@ int sd_info(sd_info_em em_info)
 	case si_sector_size:
 		return 512;
 	case si_block_size:
-		return 512;
+		return 8;
 	default:break;
 	}
 	return 0;
