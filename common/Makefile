@@ -31,7 +31,7 @@ COBJS-y = board.o
 COBJS-y += serial.o 
 COBJS-y += console.o
 COBJS-y += sd.o 
-#COBJS-y += bootini.o 
+COBJS-y += bootini.o 
 
 COBJS	:= $(COBJS-y)
 

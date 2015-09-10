@@ -78,19 +78,48 @@ unsigned long go_exec (ulong (*entry)(int, char *[]), int argc, char *argv[])
 	return entry (argc, argv);
 }
 
+
+unsigned int ff_read_file(const char *pfile_name, char *buffer, unsigned int max_size)
+{
+	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
+    FIL file;      /* 文件对象 */
+    FRESULT res;         /* FatFs 函数公共结果代码 */
+    UINT br;         /* 文件读/写字节计数 */
+
+    /* 为逻辑驱动器注册工作区 */
+    f_mount(&fs, "/", 0);
+
+    /* 打开驱动器 1 上的源文件 */
+    res = f_open(&file, pfile_name, FA_OPEN_EXISTING | FA_READ);
+    if (res) return 0;
+
+    if (0 == max_size)
+    {
+    	max_size = 0xFFFFFFFF;
+    }
+
+    /* 拷贝源文件到目标文件 */
+    res = f_read(&file, buffer, max_size, &br);
+    if (res) br = 0;   /* 文件结束错误 */
+
+    /* 关闭打开的文件 */
+    f_close(&file);
+
+    return br;
+
+}
+
 void bootini(const char *strBootFile)
 {
-	f_mount();
-
 	char ini_buf[4096] = {0};
-	uint file_len = file_fat_read(strBootFile, ini_buf, 4096);
+	uint file_len = ff_read_file(strBootFile, ini_buf, 4096);
 
 	if (file_len < 4096)
 	{
 		boot_ini_t ini_info = {{0},0xFFFFFFFF};
 		if (analysis_ini(&ini_info, ini_buf) == 0)
 		{
-			file_fat_read(ini_info.boot, ini_info.base, 0);
+			ff_read_file(ini_info.boot, ini_info.base, 0);
 			go_exec((void *)ini_info.base, 0, NULL);
 		}
 	}

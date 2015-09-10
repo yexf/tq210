@@ -40,7 +40,7 @@ void start_armboot(void)
 	serial_init();
 	interrupt_init();
 	serial_puts("\n############ sd loader for TQ210 #############\n");
-	//bootini("wboot.ini");
+	bootini("wboot.ini");
 	while(1)
 	{
 		static int count = 0;
