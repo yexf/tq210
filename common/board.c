@@ -20,6 +20,52 @@ void hang (void)
 	for (;;);
 }
 //
+inline void delay_raw(unsigned long loops)
+{
+	__asm__ volatile ("1:\n" "subs %0, %1, #1\n" "bne 1b":"=r" (loops):"0"(loops));
+}
+//
+inline void delay(unsigned long loops)
+{
+	unsigned long i;
+	for (i = 0; i < loops; i++)
+	{
+		delay_raw(133333);
+	}
+}
+
+//显示扇区 sec sd卡的物理扇区号
+int show_sd_sector(unsigned long sec)
+{
+	int i,j;	//16 * 32
+	unsigned int loc = sec << 9;
+	unsigned char sec_buf[512] = {0};
+	unsigned int totol_block = *(volatile unsigned int *)(0xD0037480);
+
+	if (!sd_read(sec, 1, sec_buf))
+	{
+		debug("Read sector error:sec(%d)\n", sec);
+		return;
+	}
+
+	printf("Show SD Secot:%d/%d\n", sec + 1, totol_block);
+
+	for (i = 0 ; i < 32; i++)
+	{
+		printf("0x%08X:", loc);
+		for (j = 0; j < 16;j++)
+		{
+			unsigned int off = i * 16 + j;
+			printf("%02X ", sec_buf[off]);
+		}
+		printf("\n");
+		loc += 16;
+	}
+	if (totol_block == ++sec)
+		return 0;
+	else return sec;
+}
+
 void start_armboot(void)
 {
 	cpu_init();
@@ -31,6 +77,8 @@ void start_armboot(void)
 	{
 		static int count = 0;
 		udelay(1000000);
-		count = show_sd_sector(count);
+		//count = show_sd_sector(count);
+		debug("count : %d\n", count++);
 	}
+
 }

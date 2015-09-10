@@ -113,7 +113,7 @@ void bootini(const char *strBootFile)
 {
 	char ini_buf[4096] = {0};
 	uint file_len = ff_read_file(strBootFile, ini_buf, 4096);
-	debug("read file:%s len:%d\n", strBootFile, file_len);
+	debug("read file:%s len:%d, data:%s\n", strBootFile, file_len, ini_buf);
 	if (file_len < 4096 && file_len != 0)
 	{
 		boot_ini_t ini_info = {{0},0xFFFFFFFF};
