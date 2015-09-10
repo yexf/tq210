@@ -20,20 +20,6 @@ void hang (void)
 	for (;;);
 }
 //
-inline void delay_raw(unsigned long loops)
-{
-	__asm__ volatile ("1:\n" "subs %0, %1, #1\n" "bne 1b":"=r" (loops):"0"(loops));
-}
-// —” ±loops ∫¡√Î
-inline void delay(unsigned long loops)
-{
-	unsigned long i;
-	for (i = 0; i < loops; i++)
-	{
-		delay_raw(133333);
-	}
-}
-//
 void start_armboot(void)
 {
 	cpu_init();

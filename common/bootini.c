@@ -113,15 +113,22 @@ void bootini(const char *strBootFile)
 {
 	char ini_buf[4096] = {0};
 	uint file_len = ff_read_file(strBootFile, ini_buf, 4096);
-
-	if (file_len < 4096)
+	debug("read file:%s len:%d\n", strBootFile, file_len);
+	if (file_len < 4096 && file_len != 0)
 	{
 		boot_ini_t ini_info = {{0},0xFFFFFFFF};
-		if (analysis_ini(&ini_info, ini_buf) == 0)
+		if (analysis_ini(&ini_info, ini_buf) != 0)
 		{
-			ff_read_file(ini_info.boot, ini_info.base, 0);
-			go_exec((void *)ini_info.base, 0, NULL);
+			debug("analysis %s error:boot(%s) base(0x%08X)", strBootFile, ini_info.boot, ini_info.base);
+			return;
 		}
+		else
+		{
+			debug("analysis %s success:boot(%s) base(0x%08X)", strBootFile, ini_info.boot, ini_info.base);
+		}
+		file_len = ff_read_file(ini_info.boot, ini_info.base, 0);
+		debug("read file:%s len:%d\n", ini_info.boot, file_len);
+		go_exec((void *)ini_info.base, 0, NULL);
 	}
 }
 
