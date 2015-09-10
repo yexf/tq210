@@ -3,19 +3,17 @@
 # yexf:yexf_fyf@163.com 2015/9/8
 #
 ####################### wxf sd loader for TQ210 #########################
-# ä¸ºTQ210å¼€å‘æ¿è®¾è®¡çš„ä»sdå¡å¯åŠ¨loader 
-# s5pv210çš„bl1å¯åŠ¨ç¨‹åº
+# ÎªTQ210¿ª·¢°åÉè¼ÆµÄ´Ósd¿¨Æô¶¯loader 
+# s5pv210µÄbl1Æô¶¯³ÌĞò
 # 
-################################ bl2 è¿‡ç¨‹   #################################	
-# ä»sdå¡çš„è·Ÿè·¯å¾„ä¸‹æ‰¾wboot.iniæ–‡ä»¶
-# å¦‚æœæ²¡æœ‰æ‰¾åˆ°,æ‰“å°å‡º"Can't find wboot.ini form SD!"
-# å¦‚æœæ‰¾åˆ°,åˆ™æ ¹æ®wboot.iniæ–‡ä»¶çš„é…ç½®ä¿¡æ¯æŠŠbl2åŠ è½½åˆ°æŒ‡å®šä½ç½®
+################################ bl2 ¹ı³Ì   #################################	
+# ´Ósd¿¨µÄ¸úÂ·¾¶ÏÂÕÒwboot.iniÎÄ¼ş
+# Èç¹ûÃ»ÓĞÕÒµ½,´òÓ¡³ö"Can't find wboot.ini form SD!"
+# Èç¹ûÕÒµ½,Ôò¸ù¾İwboot.iniÎÄ¼şµÄÅäÖÃĞÅÏ¢°Ñbl2¼ÓÔØµ½Ö¸¶¨Î»ÖÃ
 #
-# wboot.iniæ–‡ä»¶æ ¼å¼:
-# mount=/
+# wboot.iniÎÄ¼ş¸ñÊ½:
 # boot=/wxfbl2.bin
-# default=0x20000000
-# isimg=false
+# base=0x20000000
 #
 #########################################################################
 
@@ -137,6 +135,7 @@ OBJS := $(addprefix $(obj),$(OBJS))
 LIBS = lib_$(ARCH)/lib$(ARCH).a
 LIBS += common/libcommon.a
 LIBS += lib_generic/libgeneric.a
+LIBS += fat/libfat.a
 
 LIBS := $(addprefix $(obj),$(LIBS))
 .PHONY : $(LIBS) $(VERSION_FILE)

@@ -724,5 +724,6 @@
 	"nfsnetmask=255.255.255.0\0"\
 	"nfs_dir=/opt/EmbedSky/TQ210/root_nfs\0"
 
+#define CONFIG_IRAM_TOP						(0xD0035400)
 
 #endif	/* __CONFIG_H */
