@@ -328,6 +328,7 @@ lp2:
 	ldr	r1, =0x00005301	 /* PS_HOLD output high	*/
 	str	r1, [r0]
 
+#ifndef CONFIG_MINI_BOOT
 	/* get ready to call C functions */
 	ldr	sp, _TEXT_PHY_BASE	/* setup temp stack pointer */
 	sub	sp, sp, #12
@@ -344,7 +345,6 @@ lp2:
 	cmp     r1, r2                  /* compare r0, r1                  */
 	beq     after_copy		/* r0 == r1 then skip flash copy   */
 
-#ifndef CONFIG_MINI_BOOT
 #if defined(CONFIG_EVT1)
 	/* If BL1 was copied from SD/MMC CH2 */
 	ldr	r0, =0xD0037488
@@ -389,7 +389,8 @@ mmcsd_boot:
 nor_boot:
 	bl		read_hword
 	b		after_copy
-
+#else
+	ldr	sp, =CONFIG_WXFLD_START
 #endif /*  CONFIG_MINI_BOOT */
 
 after_copy:

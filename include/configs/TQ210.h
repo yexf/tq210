@@ -109,7 +109,7 @@
 /* input clock of PLL */
 #define CONFIG_SYS_CLK_FREQ					24000000	/* the TQ210 has 24MHz input clock */
 
-#define CONFIG_ENABLE_MMU
+#undef CONFIG_ENABLE_MMU
 #define CONFIG_MMU_TABLE_BASE				0xd0024000
 #define CONFIG_MINI_BOOT
 #define CONFIG_WXFLD_START					0xd002c000

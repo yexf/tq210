@@ -106,13 +106,14 @@ lowlevel_init:
 	 * and actually, memory controller must be configured before U-Boot
 	 * is running in ram.
 	 */
+#ifndef CONFIG_MINI_BOOT
 	ldr	r0, =0xff000fff
 	bic	r1, pc, r0		/* r0 <- current base addr of code */
 	ldr	r2, _TEXT_BASE		/* r1 <- original base addr in ram */
 	bic	r2, r2, r0		/* r0 <- current base addr of code */
 	cmp     r1, r2                  /* compare r0, r1                  */
 	beq     1f			/* r0 == r1 then skip sdram init   */
-
+#endif
 	/* init PMIC chip */
 #ifdef CONFIG_TQ210_IIC_PM_CHIP
 	bl PMIC_InitIp
