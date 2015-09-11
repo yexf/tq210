@@ -46,27 +46,23 @@ int sd_init ()
 	return 0;
 }
 //
-////return ==>> success : 1 error : 0
-////unsigned long sdirom_read(int dev, unsigned long start, lbaint_t blkcnt, void *buffer)
-////{
-////	copy_sd_mmc_to_mem copy_bl2 =
-////		    (copy_sd_mmc_to_mem) (*(u32 *) (0xD0037F98));
-////
-////	u16 block_size = (u16)(blkcnt & 0x0000FFFF);
-////	if (0xEB000000 == dev)
-////	{
-////		return copy_bl2(0, start, block_size, buffer, 0);
-////	}
-////	else if (0xEB200000 == dev)
-////	{
-////		return copy_bl2(2, start, block_size, buffer, 0);
-////	}
-////	else
-////	{
-////		debug("Unknow Dev:%d\n", dev);
-////		return 0;
-////	}
-////}
+//return ==>> success : 1 error : 0
+unsigned long sdirom_read(int dev, unsigned long start, lbaint_t blkcnt, void *buffer)
+{
+	copy_sd_mmc_to_mem copy_bl2 =
+		    (copy_sd_mmc_to_mem) (*(u32 *) (0xD0037F98));
+
+	unsigned int ch = *(volatile unsigned int *)(0xD0037488);
+	u16 block_size = (u16)(blkcnt & 0x0000FFFF);
+	if (0xEB000000 == ch)
+	{
+		return copy_bl2(0, start, block_size, buffer, 0);
+	}
+	else if (0xEB200000 == ch)
+	{
+		return copy_bl2(2, start, block_size, buffer, 0);
+	}
+}
 //int get_sdirom_dev(block_dev_desc_t *pdev)
 //{
 //	int ret = *(volatile int *)(0xD0037488);

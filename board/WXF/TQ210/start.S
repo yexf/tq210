@@ -395,6 +395,7 @@ nor_boot:
 after_copy:
 
 #if defined(CONFIG_ENABLE_MMU)
+	bl		copy_mmu_table
 enable_mmu:
 	/* enable domain access */
 	ldr	r5, =0x0000ffff

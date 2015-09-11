@@ -13,7 +13,7 @@ void copy_mmu_table()
 	u16 block_size = 32;
 	u32 mmu_off = mmu_table - CFG_UBOOT_BASE;
 	u32 start_block = mmu_off >> 9 + 1;
-	sd_read_iram(start_block, block_size, mmu_base);
+	sdirom_read(0, start_block, block_size, mmu_base);
 }
 #endif
 void hang (void)
@@ -72,10 +72,10 @@ void show_mem_sector(unsigned long base)
 {
 	int i,j;	//16 * 32
 	unsigned int loc = base;
-	unsigned char *sec_buf = (volatile unsigned char *)base;
+	volatile unsigned char *sec_buf = (volatile unsigned char *)base;
 
 
-	printf("Show Mem Secot:0X%08X\n", base);
+	printf("Show Mem Secot:0x%p\n", sec_buf);
 
 	for (i = 0 ; i < 32; i++)
 	{
@@ -99,8 +99,21 @@ void show_mem(unsigned long base, unsigned int size)
 		show_mem_sector(base + i * 512 );
 	}
 }
-
-unsigned int ff_read_file(const char *pfile_name, char *buffer, unsigned int max_size)
+void copy_to_mem(void *dst, const void *src, const void *end)
+{
+	__asm__ __volatile__(
+			"loop:ldr r3, [r1]" "\n\t"
+			"str r3, [r0]" "\n\t"
+			"add	r0, r0, #4" "\n\t"
+			"add	r1, r1, #4" "\n\t"
+			"cmp	r2, r1" "\n\t"
+			"ble	loop" "\n\t"
+			:
+			:
+			:"memory"
+	);
+}
+unsigned int ff_read_file(const char *pfile_name, unsigned int base, unsigned int max_size)
 {
 	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
     FIL file;      /* 文件对象 */
@@ -118,47 +131,61 @@ unsigned int ff_read_file(const char *pfile_name, char *buffer, unsigned int max
     {
     	max_size = 0xFFFFFFFF;
     }
-//    unsigned int offset = 0;
-//    while (1)
-//    {
-//    	char buf[4096] = {0};
-//    	/* 拷贝源文件到目标文件 */
-//    	res = f_read(&file, buf, 4096, &br);
-//    	if (res || br == 0) break;
-//    	__asm__ __volatile__("": : :"memory");
-//    	memcpy(buffer + offset, buf, br);
-//    	offset += br;
-//    }
-    res = f_read(&file, buffer, max_size, &br);
+    unsigned int count = 0;
+    while (max_size >= count)
+    {
+    	char buf[4096] = {0};
+    	char *pbuf = buf;
+    	/* 拷贝源文件到目标文件 */
+    	res = f_read(&file, buf, 4096, &br);
+    	if (res || br == 0) break;
+    	volatile char *pdst = (volatile char *)(base);
+    	while(br--) *pdst++ = *pbuf++;
+    	//memcpy(pdst, buf, 4096);
+    	//copy_to_mem((volatile char*)(base + count), buf, buf+4096);
+    	debug("show buffer:%p\n", buf);
+    	show_mem((unsigned int)(buf), 512);
+    	debug("show base:0x%08X\n", base + count);
+    	show_mem((unsigned int)(base), 512);
+    	count += br;
+    }
     if (res || br == 0)
     {
-    	debug("read file error, ret :%d, br:%\n", ret, br);
+    	debug("read file error, ret :%d, count:%d\n", res, count);
     }
     else
     {
-    	debug("read file succ, ret :%d, br:%\n", ret, br);
+    	debug("read file succ, ret :%d, count:%d\n", res, count);
     }
     /* 关闭打开的文件 */
     f_close(&file);
 
-    return br;
+    return count;
 
 }
-void bootload()
+
+void test_mem_copy()
+{
+	volatile char *base = (volatile char *)(0x20000000);
+	printf("## test_mem_copy at 0x%p ...\n", base);
+
+	sdirom_read(0, 1, 1, base);
+
+	show_mem(0x20000000, 512);
+}
+
+void bootloader()
 {
 	exe_entry addr;
 	volatile char *base = (volatile char *)(0x20000000);
 	addr = (exe_entry)base;
-
-	printf("## show sd ##\n");
-	show_sd_sector(1);
 
 	printf("## Booting ldr image at 0x%p ...\n", addr);
 
 	icache_disable();
 	dcache_disable();
 
-	uint fiel_len = ff_read_file("/wboot.ini", base, 0);
+	uint fiel_len = ff_read_file("/wboot.bin", 0x20000000, 0);
 	show_mem(0x20000000, fiel_len);
 	addr(0, NULL);
 	return 0;
@@ -168,14 +195,20 @@ void start_armboot(void)
 	cpu_init();
 	serial_init();
 	interrupt_init();
-	serial_puts("\n############ sd loader for TQ210 #############\n");
-	bootload();
+	serial_puts("\n############ show sd loader for TQ210 ###########\n");
+#ifdef SHOW_SD_IMAGE
+	int i;
+	for (i = 0; i < 32;i++)
+		show_sd_sector(i+1);
+#endif
+
+	test_mem_copy();
+
+	//bootloader();
 	while(1)
 	{
 		static int count = 0;
 		udelay(1000000);
-		//count = show_sd_sector(count);
 		debug("count : %d\n", count++);
 	}
-
 }
