@@ -8,12 +8,40 @@ typedef unsigned int  (*exe_entry)(int, char *[]);
 #if defined(CONFIG_ENABLE_MMU)
 void copy_mmu_table()
 {
-	extern u32 mmu_table;
-	u32 mmu_base = mmu_table;
-	u16 block_size = 32;
-	u32 mmu_off = mmu_table - CFG_UBOOT_BASE;
-	u32 start_block = mmu_off >> 9 + 1;
-	sdirom_read(0, start_block, block_size, mmu_base);
+	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
+	FIL file;      /* 文件对象 */
+	FRESULT res;         /* FatFs 函数公共结果代码 */
+	UINT br;         /* 文件读/写字节计数 */
+
+	serial_puts("\n####### copy mmu table from mmu.bin ###########\n");
+
+	/* 为逻辑驱动器注册工作区 */
+	f_mount(&fs, "/", 0);
+
+	/* 打开驱动器 1 上的源文件 */
+	res = f_open(&file, "/mmu.bin", FA_OPEN_EXISTING | FA_READ);
+	if (res)
+	{
+		serial_puts("open /mmu.bin error\n");
+		return;
+	}
+
+	res = f_read(&file, (void*)CONFIG_MMU_TABLE_BASE, 0x00004000, &br);
+	//if (res || br == 0) break;
+	res = f_read(&file, (void*)CONFIG_MMU_TABLE_BASE, 0x00004000, &br);
+	//if (res || br == 0) break;
+
+	/* 关闭打开的文件 */
+	f_close(&file);
+
+	if (res || br == 0)
+	{
+		serial_puts("read file /mmu.bin error\n");
+	}
+	else
+	{
+		serial_puts("read file /mmu.bin succ\n");
+	}
 }
 #endif
 void hang (void)
@@ -143,10 +171,10 @@ unsigned int ff_read_file(const char *pfile_name, unsigned int base, unsigned in
     	while(br--) *pdst++ = *pbuf++;
     	//memcpy(pdst, buf, 4096);
     	//copy_to_mem((volatile char*)(base + count), buf, buf+4096);
-    	debug("show buffer:%p\n", buf);
-    	show_mem((unsigned int)(buf), 512);
-    	debug("show base:0x%08X\n", base + count);
-    	show_mem((unsigned int)(base), 512);
+    	//debug("show buffer:%p\n", buf);
+    	//show_mem((unsigned int)(buf), 512);
+    	//debug("show base:0x%08X\n", base + count);
+    	//show_mem((unsigned int)(base), 512);
     	count += br;
     }
     if (res || br == 0)
@@ -166,29 +194,59 @@ unsigned int ff_read_file(const char *pfile_name, unsigned int base, unsigned in
 
 void test_mem_copy()
 {
-	volatile char *base = (volatile char *)(0x20000000);
+	volatile int *base = (volatile int *)(0x20000000);
 	printf("## test_mem_copy at 0x%p ...\n", base);
-
-	sdirom_read(0, 1, 1, base);
-
-	show_mem(0x20000000, 512);
+	printf("## read mem at 0x%p:0x%08X\n", base, *base);
+	printf("## write mem at 0x%p:0x%08X\n", base, 0xa5a5a5a5);
+	*base = 0xa5a5a5a5;
+	printf("## read mem at 0x%p:0x%08X\n", base, *base);
 }
 
-void bootloader()
+void bootloader(unsigned int base)
 {
 	exe_entry addr;
-	volatile char *base = (volatile char *)(0x20000000);
+	//volatile char *base = (volatile char *)(0x20000000);
 	addr = (exe_entry)base;
 
 	printf("## Booting ldr image at 0x%p ...\n", addr);
 
-	icache_disable();
-	dcache_disable();
-
-	uint fiel_len = ff_read_file("/wboot.bin", 0x20000000, 0);
-	show_mem(0x20000000, fiel_len);
 	addr(0, NULL);
 	return 0;
+}
+unsigned int sd_load_file(const char *pfile_name, unsigned int base, unsigned int max_size)
+{
+	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
+    FIL file;      /* 文件对象 */
+    FRESULT res;         /* FatFs 函数公共结果代码 */
+    UINT br;         /* 文件读/写字节计数 */
+
+    /* 为逻辑驱动器注册工作区 */
+    f_mount(&fs, "/", 0);
+
+    /* 打开驱动器 1 上的源文件 */
+    res = f_open(&file, pfile_name, FA_OPEN_EXISTING | FA_READ);
+    if (res) return 0;
+
+    if (0 == max_size)
+    {
+    	max_size = 0xFFFFFFFF;
+    }
+    volatile void *base_point = (volatile void *)(base);
+    res = f_read(&file, base_point, max_size, &br);
+
+    if (res || br == 0)
+    {
+    	printf("read file error, ret :%d, count:%d\n", res, br);
+    }
+    else
+    {
+    	printf("read file succ, ret :%d, count:%d\n", res, br);
+    }
+    /* 关闭打开的文件 */
+    f_close(&file);
+
+    return br;
+
 }
 void start_armboot(void)
 {
@@ -203,8 +261,9 @@ void start_armboot(void)
 #endif
 
 	test_mem_copy();
-
-	//bootloader();
+	uint fiel_len = sd_load_file("/wboot.bin", 0x20000000, 0);
+	//show_mem(0x20000000, fiel_len);
+	bootloader(0x20000000);
 	while(1)
 	{
 		static int count = 0;
