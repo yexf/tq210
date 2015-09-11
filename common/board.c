@@ -3,7 +3,6 @@
 #include <fat.h>
 DECLARE_GLOBAL_DATA_PTR;
 
-typedef unsigned int  (*exe_entry)(int, char *[]);
 
 #if defined(CONFIG_ENABLE_MMU)
 void copy_mmu_table()
@@ -44,6 +43,7 @@ void copy_mmu_table()
 	}
 }
 #endif
+
 void hang (void)
 {
 	puts ("### ERROR ### Please RESET the board ###\n");
@@ -75,7 +75,7 @@ int show_sd_sector(unsigned long sec)
 	if (!sd_read(sec, 1, sec_buf))
 	{
 		debug("Read sector error:sec(%d)\n", sec);
-		return;
+		return 0;
 	}
 
 	printf("Show SD Secot:%d/%d\n", sec + 1, totol_block);
@@ -95,15 +95,16 @@ int show_sd_sector(unsigned long sec)
 		return 0;
 	else return sec;
 }
+
 //显示扇区 sec sd卡的物理扇区号
 void show_mem_sector(unsigned long base)
 {
 	int i,j;	//16 * 32
 	unsigned int loc = base;
-	volatile unsigned char *sec_buf = (volatile unsigned char *)base;
+	unsigned char *sec_buf = (unsigned char *)base;
 
 
-	printf("Show Mem Secot:0x%p\n", sec_buf);
+	printf("Show Mem Secot:0X%08X\n", base);
 
 	for (i = 0 ; i < 32; i++)
 	{
@@ -127,71 +128,6 @@ void show_mem(unsigned long base, unsigned int size)
 		show_mem_sector(base + i * 512 );
 	}
 }
-void copy_to_mem(void *dst, const void *src, const void *end)
-{
-	__asm__ __volatile__(
-			"loop:ldr r3, [r1]" "\n\t"
-			"str r3, [r0]" "\n\t"
-			"add	r0, r0, #4" "\n\t"
-			"add	r1, r1, #4" "\n\t"
-			"cmp	r2, r1" "\n\t"
-			"ble	loop" "\n\t"
-			:
-			:
-			:"memory"
-	);
-}
-unsigned int ff_read_file(const char *pfile_name, unsigned int base, unsigned int max_size)
-{
-	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
-    FIL file;      /* 文件对象 */
-    FRESULT res;         /* FatFs 函数公共结果代码 */
-    UINT br;         /* 文件读/写字节计数 */
-
-    /* 为逻辑驱动器注册工作区 */
-    f_mount(&fs, "/", 0);
-
-    /* 打开驱动器 1 上的源文件 */
-    res = f_open(&file, pfile_name, FA_OPEN_EXISTING | FA_READ);
-    if (res) return 0;
-
-    if (0 == max_size)
-    {
-    	max_size = 0xFFFFFFFF;
-    }
-    unsigned int count = 0;
-    while (max_size >= count)
-    {
-    	char buf[4096] = {0};
-    	char *pbuf = buf;
-    	/* 拷贝源文件到目标文件 */
-    	res = f_read(&file, buf, 4096, &br);
-    	if (res || br == 0) break;
-    	volatile char *pdst = (volatile char *)(base);
-    	while(br--) *pdst++ = *pbuf++;
-    	//memcpy(pdst, buf, 4096);
-    	//copy_to_mem((volatile char*)(base + count), buf, buf+4096);
-    	//debug("show buffer:%p\n", buf);
-    	//show_mem((unsigned int)(buf), 512);
-    	//debug("show base:0x%08X\n", base + count);
-    	//show_mem((unsigned int)(base), 512);
-    	count += br;
-    }
-    if (res || br == 0)
-    {
-    	debug("read file error, ret :%d, count:%d\n", res, count);
-    }
-    else
-    {
-    	debug("read file succ, ret :%d, count:%d\n", res, count);
-    }
-    /* 关闭打开的文件 */
-    f_close(&file);
-
-    return count;
-
-}
-
 void test_mem_copy()
 {
 	volatile int *base = (volatile int *)(0x20000000);
@@ -202,72 +138,30 @@ void test_mem_copy()
 	printf("## read mem at 0x%p:0x%08X\n", base, *base);
 }
 
-void bootloader(unsigned int base)
-{
-	exe_entry addr;
-	//volatile char *base = (volatile char *)(0x20000000);
-	addr = (exe_entry)base;
-
-	printf("## Booting ldr image at 0x%p ...\n", addr);
-
-	addr(0, NULL);
-	return 0;
-}
-unsigned int sd_load_file(const char *pfile_name, unsigned int base, unsigned int max_size)
-{
-	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
-    FIL file;      /* 文件对象 */
-    FRESULT res;         /* FatFs 函数公共结果代码 */
-    UINT br;         /* 文件读/写字节计数 */
-
-    /* 为逻辑驱动器注册工作区 */
-    f_mount(&fs, "/", 0);
-
-    /* 打开驱动器 1 上的源文件 */
-    res = f_open(&file, pfile_name, FA_OPEN_EXISTING | FA_READ);
-    if (res) return 0;
-
-    if (0 == max_size)
-    {
-    	max_size = 0xFFFFFFFF;
-    }
-    volatile void *base_point = (volatile void *)(base);
-    res = f_read(&file, base_point, max_size, &br);
-
-    if (res || br == 0)
-    {
-    	printf("read file error, ret :%d, count:%d\n", res, br);
-    }
-    else
-    {
-    	printf("read file succ, ret :%d, count:%d\n", res, br);
-    }
-    /* 关闭打开的文件 */
-    f_close(&file);
-
-    return br;
-
-}
 void start_armboot(void)
 {
 	cpu_init();
 	serial_init();
 	interrupt_init();
-	serial_puts("\n############ show sd loader for TQ210 ###########\n");
+	serial_puts("\n########## wxf sd loader for TQ210 ###########\n");
 #ifdef SHOW_SD_IMAGE
 	int i;
 	for (i = 0; i < 32;i++)
 		show_sd_sector(i+1);
+	test_mem_copy();
 #endif
 
-	test_mem_copy();
-	uint fiel_len = sd_load_file("/wboot.bin", 0x20000000, 0);
-	//show_mem(0x20000000, fiel_len);
-	bootloader(0x20000000);
+	//uint fiel_len = sd_load_file("/wboot.bin", 0x20000000, 0);
+	//bootloader(0x20000000);
+	bootini("/wboot.ini");
+
+	#ifdef CONFIG_COUNT_DELAY
+	show_mem(0x20000000, fiel_len);
 	while(1)
 	{
 		static int count = 0;
 		udelay(1000000);
 		debug("count : %d\n", count++);
 	}
+	#endif /* CONFIG_COUNT_DELAY  */
 }

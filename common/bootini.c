@@ -100,10 +100,53 @@ int analysis_ini(boot_ini_t *pini_info, char *ini_data)
 		return 0;
 	}
 }
-__attribute__((weak))
-unsigned long go_exec (ulong (*entry)(int, char *[]), int argc, char *argv[])
+void bootloader(unsigned int base, int argv, char *argc[])
 {
-	return entry (argc, argv);
+	typedef unsigned int  (*exe_entry)(int, char *[]);
+
+	exe_entry addr;
+	//volatile char *base = (volatile char *)(0x20000000);
+	addr = (exe_entry)base;
+
+	printf("########## Booting ldr image at 0x%p ...\n", addr);
+
+	addr(argv, argc);
+}
+
+unsigned int sd_load_file(const char *pfile_name, unsigned int base, unsigned int max_size)
+{
+	FATFS fs;         /* 逻辑驱动器的工作区(文件系统对象) */
+    FIL file;      /* 文件对象 */
+    FRESULT res;         /* FatFs 函数公共结果代码 */
+    UINT br;         /* 文件读/写字节计数 */
+
+    /* 为逻辑驱动器注册工作区 */
+    f_mount(&fs, "/", 0);
+
+    /* 打开驱动器 1 上的源文件 */
+    res = f_open(&file, pfile_name, FA_OPEN_EXISTING | FA_READ);
+    if (res) return 0;
+
+    if (0 == max_size)
+    {
+    	max_size = 0xFFFFFFFF;
+    }
+    volatile void *base_point = (volatile void *)(base);
+    res = f_read(&file, base_point, max_size, &br);
+
+    if (res || br == 0)
+    {
+    	("read file %s error, ret :%d, count:%d\n",pfile_name, res, br);
+    }
+    else
+    {
+    	printf("read file %s succ, ret :%d, count:%d\n", pfile_name, res, br);
+    }
+    /* 关闭打开的文件 */
+    f_close(&file);
+
+    return br;
+
 }
 unsigned int ff_read_file(const char *pfile_name, char *buffer, unsigned int max_size)
 {
@@ -142,38 +185,6 @@ unsigned int ff_read_file(const char *pfile_name, char *buffer, unsigned int max
 
 }
 
-//显示扇区 sec sd卡的物理扇区号
-void show_mem_sector(unsigned long base)
-{
-	int i,j;	//16 * 32
-	unsigned int loc = base;
-	unsigned char *sec_buf = (unsigned char *)base;
-
-
-	printf("Show Mem Secot:0X%08X\n", base);
-
-	for (i = 0 ; i < 32; i++)
-	{
-		printf("0x%08X:", loc);
-		for (j = 0; j < 16;j++)
-		{
-			unsigned int off = i * 16 + j;
-			printf("%02X ", sec_buf[off]);
-		}
-		printf("\n");
-		loc += 16;
-	}
-}
-void show_mem(unsigned long base, unsigned int size)
-{
-	unsigned int count = (size + 511) >> 9;
-	unsigned int i;
-	for (i = 0; i < count; i++)
-	{
-		udelay(500000);
-		show_mem_sector(base + i * 512 );
-	}
-}
 /*************************************************************
  函 数 名：GetIniKey()
  功能概要: 获得指定配置文件中指定关键字的值
@@ -358,11 +369,10 @@ unsigned int bootini(const char *strBootFile)
 
 	if (file_len < 4096 && file_len != 0)
 	{
-
 		if (analysis_ini(&ini_info, ini_buf) != 0)
 		{
 			debug("analysis %s error:boot(%s) base(0x%08X)\n", strBootFile, ini_info.boot, ini_info.base);
-			return;
+			return 0xFFFFFFFF;
 		}
 		else
 		{
@@ -370,9 +380,11 @@ unsigned int bootini(const char *strBootFile)
 		}
 
 		file_len = ff_read_file(ini_info.boot, (char *)ini_info.base, 0);
-		show_mem(ini_info.base, file_len);
-		go_exec((void *)ini_info.base, 0, NULL);
+		//show_mem(ini_info.base, file_len);
+
 		debug("read file:%s len:%d\n", ini_info.boot, file_len);
+
+		bootloader(ini_info.base, 0, NULL);
 
 	}
 	return ini_info.base;
