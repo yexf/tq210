@@ -137,6 +137,27 @@ void test_mem_copy()
 	*base = 0xa5a5a5a5;
 	printf("## read mem at 0x%p:0x%08X\n", base, *base);
 }
+void test_read_mem(unsigned int address, unsigned int count)
+{
+	volatile int *base = (volatile int *)(address);
+	while(count--) address = *base;
+}
+void test_mem_read_speed(unsigned int address, unsigned int count)
+{
+	unsigned long long t1 = get_ticks();
+	test_read_mem(address, count);
+	unsigned long long t2 = get_ticks();
+	printf("address:0x%08x, count:%d, cost:%d\n", address, count ,t2 - t1);
+}
+
+void test_clock_speed()
+{
+	unsigned long long t1 = get_ticks();
+	udelay(1000000);
+	unsigned long long t2 = get_ticks();
+	printf("tick cost %d per second\n", t2 - t1);
+
+}
 
 void start_armboot(void)
 {
@@ -151,8 +172,9 @@ void start_armboot(void)
 	test_mem_copy();
 #endif
 
-	//uint fiel_len = sd_load_file("/wboot.bin", 0x20000000, 0);
-	//bootloader(0x20000000);
+//	test_clock_speed();
+//	test_mem_read_speed(0x20000000, 100000000);
+//	test_mem_read_speed(0xD0030000, 100000000);
 	bootini("/wboot.ini");
 
 	#ifdef CONFIG_COUNT_DELAY
