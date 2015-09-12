@@ -55,6 +55,13 @@ inline void delay_raw(unsigned long loops)
 	__asm__ volatile ("1:\n" "subs %0, %1, #1\n" "bne 1b":"=r" (loops):"0"(loops));
 }
 //
+inline void delay_10nop(unsigned long loops)
+{
+	__asm__ volatile ("1:\n"
+			"nop\n""nop\n""nop\n""nop\n""nop\n""nop\n""nop\n""nop\n"
+			"subs %0, %1, #1\n"	"bne 1b":"=r" (loops):"0"(loops));
+}
+//
 inline void delay(unsigned long loops)
 {
 	unsigned long i;
@@ -153,9 +160,13 @@ void test_mem_read_speed(unsigned int address, unsigned int count)
 void test_clock_speed()
 {
 	unsigned long long t1 = get_ticks();
-	udelay(1000000);
+	delay_10nop(100000000);
 	unsigned long long t2 = get_ticks();
-	printf("tick cost %d per second\n", t2 - t1);
+	printf("tick cost %d per delay_10nop\n", t2 - t1);
+	t1 = get_ticks();
+	udelay(1000000);
+	t2 = get_ticks();
+	printf("tick cost %d per udelay\n", t2 - t1);
 
 }
 
@@ -172,7 +183,7 @@ void start_armboot(void)
 	test_mem_copy();
 #endif
 
-//	test_clock_speed();
+	test_clock_speed();
 //	test_mem_read_speed(0x20000000, 100000000);
 //	test_mem_read_speed(0xD0030000, 100000000);
 	bootini("/wboot.ini");
